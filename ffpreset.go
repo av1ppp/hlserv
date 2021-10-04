@@ -21,7 +21,7 @@ func mp4ToHLS(streamID string, src string, offset time.Duration) (ffmpeg.OptsInM
 			HLSListSize:    0, // unlimit
 			HLSSegmentType: "mpegts",
 			HLSFlags:       []string{"program_date_time"},
-			File:           fmt.Sprintf("http://%s/%s/stream.m3u8", Addr, streamID),
+			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, streamID),
 			General: &ffmpeg.OptsOutGeneral{
 				Audio:          false,
 				VCodec:         "libx264",
@@ -80,7 +80,7 @@ func rtspToHLS(streamID string, src string) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHL
 			HLSListSize:    32,
 			HLSSegmentType: "mpegts",
 			HLSFlags:       []string{"delete_segments", "omit_endlist"},
-			File:           fmt.Sprintf("http://%s/%s/stream.m3u8", Addr, streamID),
+			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, streamID),
 			General: &ffmpeg.OptsOutGeneral{
 				Audio:          false,
 				VCodec:         "libx264",

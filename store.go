@@ -88,6 +88,25 @@ func (store *Store) Create(name string, data []byte) error {
 	return nil
 }
 
+func (store *Store) Write(name string, data []byte) error {
+	file, err := store.File(name)
+
+	// create
+	if os.IsNotExist(err) {
+		if err := store.Create(name, data); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// or change mtime/data/offset
+	file.mtime = time.Now()
+	file.data = data
+	file.offset = 0
+
+	return nil
+}
+
 func (store *Store) Remove(name string) error {
 	store.Lock()
 	defer store.Unlock()

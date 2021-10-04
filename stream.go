@@ -28,7 +28,7 @@ func CreateStream(conf *StreamConfig) (string, error) {
 	if conf.Format == "rtsp" {
 		input, output = rtspToHLS(id, conf.Input)
 	} else {
-		// TODO: Return error
+		return "", ErrUnknownFormat
 	}
 
 	w, err := ffmpeg.NewWorker(id, input, output)

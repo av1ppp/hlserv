@@ -2,7 +2,6 @@ package hlserv_test
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -14,7 +13,7 @@ import (
 var addr = "127.0.0.1:5555"
 
 func init() {
-	hlserv.Addr = addr
+	hlserv.EndPoint = "http://" + addr
 }
 
 func TestHLSServer(t *testing.T) {
@@ -33,7 +32,7 @@ func TestHLSServer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error adding stream: %s", err)
 	}
-	fmt.Println("STREAM ID", streamID)
+	t.Log("Stream ID", streamID)
 
 	time.Sleep(time.Second * 5)
 
