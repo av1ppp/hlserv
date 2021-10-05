@@ -6,10 +6,10 @@ import (
 	"github.com/av1ppp/hlserv/ffmpeg"
 )
 
-func mp4ToHLS(conf *StreamConfig) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
+func mp4ToHLS(stream *Stream) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
 	var (
 		input = ffmpeg.OptsInMp4{
-			File: conf.Source,
+			File: stream.Config.Source,
 			General: &ffmpeg.OptsInGeneral{
 				LogLevel: []string{},
 				// Start:    fmt.Sprintf("%f", offset.Seconds()),
@@ -20,23 +20,23 @@ func mp4ToHLS(conf *StreamConfig) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
 			HLSListSize:    0, // unlimit
 			HLSSegmentType: "mpegts",
 			HLSFlags:       []string{"program_date_time"},
-			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, conf.id),
+			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, stream.ID),
 			General: &ffmpeg.OptsOutGeneral{
-				Audio:          false,
+				Audio:          stream.Config.AudioEnabled,
 				VCodec:         "libx264",
-				FPS:            15,
-				Gop:            15,
-				KeyintMin:      15,
+				FPS:            stream.Config.FPS,
+				Gop:            stream.Config.FPS,
+				KeyintMin:      stream.Config.FPS,
 				ForceKeyFrames: "expr:gte(t,n_forced*1)",
 				Tune:           "zerolatency",
-				Preset:         "ultrafast",
-				CRF:            25,
+				Preset:         ffmpeg.FormatPreset(stream.Config.Preset),
+				CRF:            stream.Config.CRF,
 
-				VFilter:  formatVFilter(conf.Scale),
-				Level:    "5.0",
-				VProfile: "main",
-				VBitrate: "5000k",
-				Bufsize:  "2500k",
+				VFilter:  formatVFilter(stream.Config.Scale),
+				Level:    stream.Config.Level,
+				VProfile: stream.Config.Profile,
+				VBitrate: stream.Config.VideoBitrate,
+				Bufsize:  stream.Config.Bufsize,
 			},
 		}
 	)
@@ -52,37 +52,37 @@ func formatVFilter(scale string) string {
 	return "scale=" + scale
 }
 
-func rtspToHLS(conf *StreamConfig) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHLS) {
+func rtspToHLS(stream *Stream) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHLS) {
 	// Creating ffmpeg worker
 	var (
 		input = ffmpeg.OptsInRTSP{
 			RTSPTransport:     "udp",
 			AllowedMediaTypes: []string{"video", "data"},
 			Stimeout:          20_000_000, // 20 sec.
-			File:              conf.Source,
+			File:              stream.Config.Source,
 		}
 		output = ffmpeg.OptsOutHLS{
 			HLSTime:        1,
 			HLSListSize:    32,
 			HLSSegmentType: "mpegts",
 			HLSFlags:       []string{"delete_segments", "omit_endlist"},
-			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, conf.id),
+			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, stream.ID),
 			General: &ffmpeg.OptsOutGeneral{
-				Audio:          conf.AudioEnabled,
+				Audio:          stream.Config.AudioEnabled,
 				VCodec:         "libx264",
-				FPS:            conf.FPS,
-				Gop:            conf.FPS,
-				KeyintMin:      conf.FPS,
+				FPS:            stream.Config.FPS,
+				Gop:            stream.Config.FPS,
+				KeyintMin:      stream.Config.FPS,
 				ForceKeyFrames: "expr:gte(t,n_forced*1)",
 				Tune:           "zerolatency",
-				Preset:         ffmpeg.FormatPreset(conf.Preset),
-				CRF:            conf.CRF,
+				Preset:         ffmpeg.FormatPreset(stream.Config.Preset),
+				CRF:            stream.Config.CRF,
 
-				VFilter:  formatVFilter(conf.Scale),
-				Level:    conf.Level,
-				VProfile: conf.Profile,
-				VBitrate: conf.VideoBitrate,
-				Bufsize:  conf.Bufsize,
+				VFilter:  formatVFilter(stream.Config.Scale),
+				Level:    stream.Config.Level,
+				VProfile: stream.Config.Profile,
+				VBitrate: stream.Config.VideoBitrate,
+				Bufsize:  stream.Config.Bufsize,
 			},
 		}
 	)

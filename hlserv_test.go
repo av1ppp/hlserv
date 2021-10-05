@@ -21,18 +21,18 @@ func TestHLSServer(t *testing.T) {
 		hlserv.Handler.ServeHTTP(w, r)
 	}))
 
-	streamID, err := hlserv.CreateStream(&hlserv.StreamConfig{
+	stream, err := hlserv.CreateStream(hlserv.StreamConfig{
 		Format: "rtsp",
 		Source: "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
 	})
 	if err != nil {
 		t.Fatalf("error adding stream: %s", err)
 	}
-	t.Log("Stream ID", streamID)
+	t.Log("Stream ID", stream.ID)
 
 	time.Sleep(time.Second * 5)
 
-	resp, err := http.Get("http://" + addr + "/stream/" + streamID + "/stream.m3u8")
+	resp, err := http.Get("http://" + addr + "/stream/" + stream.ID + "/stream.m3u8")
 	if err != nil {
 		t.Fatalf("error request: %s", err)
 	}
@@ -44,7 +44,7 @@ func TestHLSServer(t *testing.T) {
 
 	time.Sleep(time.Second * 5)
 
-	if err := hlserv.RemoveStream(streamID); err != nil {
+	if err := hlserv.RemoveStream(stream.ID); err != nil {
 		t.Fatalf("error removeing stream: %s", err)
 	}
 

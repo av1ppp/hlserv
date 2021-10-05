@@ -34,7 +34,7 @@ var getStreamsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 		resp = append(resp, struct {
 			ID string `json:"id"`
 		}{
-			ID: stream,
+			ID: stream.ID,
 		})
 	}
 
@@ -60,21 +60,33 @@ var startStreamHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 		panic(err)
 	}
 
-	streamID, err := hlserv.CreateStream(&hlserv.StreamConfig{
-		Format: "mp4",
-		Source: req.Source,
-		FPS:    10,
-		CRF:    req.CRF,
-		Scale:  req.Scale,
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	var resp struct {
 		StreamID string `json:"stream_id"`
 	}
-	resp.StreamID = streamID
+
+	// если уже есть такой стрим - возвращаем его
+	for _, stream := range hlserv.Streams() {
+		if stream.Config.Source == req.Source &&
+			stream.Config.CRF == req.CRF &&
+			stream.Config.Scale == req.Scale {
+			resp.StreamID = stream.ID
+		}
+	}
+
+	// если нет - создаем новый
+	if resp.StreamID == "" {
+		stream, err := hlserv.CreateStream(hlserv.StreamConfig{
+			Format: "mp4",
+			Source: req.Source,
+			FPS:    10,
+			CRF:    req.CRF,
+			Scale:  req.Scale,
+		})
+		if err != nil {
+			panic(err)
+		}
+		resp.StreamID = stream.ID
+	}
 
 	if data, err = json.Marshal(resp); err != nil {
 		panic(err)

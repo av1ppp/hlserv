@@ -15,20 +15,10 @@ import (
 var addr = "localhost:5555"
 
 func main() {
-	var streamID string
+	var stream *hlserv.Stream
 	var err error
 
 	hlserv.EndPoint = "http://" + addr + "/streams"
-
-	// start streaming
-	conf := hlserv.StreamConfig{
-		Format: "rtsp",
-		Source: "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
-		FPS:    10,
-	}
-	if streamID, err = hlserv.CreateStream(&conf); err != nil {
-		panic(err)
-	}
 
 	// start http server
 	r := chi.NewRouter()
@@ -48,11 +38,7 @@ func main() {
 		// send all streams
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
-			if streamID == "" {
-				w.Write([]byte("[]"))
-			} else {
-				w.Write([]byte(fmt.Sprintf(`[ { "id": "%s" } ]`, streamID)))
-			}
+			w.Write([]byte(fmt.Sprintf(`[ { "id": "%s" } ]`, stream.ID)))
 		})
 
 		r.Route("/{streamID}/{filename}", func(r chi.Router) {
@@ -60,8 +46,26 @@ func main() {
 		})
 	})
 
+	ch := make(chan error)
+	go func() {
+		if err = http.ListenAndServe(addr, r); err != nil {
+			ch <- err
+		}
+	}()
+
+	// start streaming
+	stream, err = hlserv.CreateStream(hlserv.StreamConfig{
+		Format: "rtsp",
+		Source: "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
+		FPS:    10,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	log.Printf("Open http://%s/ in your browser", addr)
-	if err = http.ListenAndServe(addr, r); err != nil {
+
+	if err := <-ch; err != nil {
 		panic(err)
 	}
 }
