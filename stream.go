@@ -101,6 +101,8 @@ func RemoveStream(id string) error {
 			}
 			ffmpeg.RmWorker(id)
 			streams = append(streams[:i], streams[i+1:]...)
+
+			return nil
 		}
 	}
 

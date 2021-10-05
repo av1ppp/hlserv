@@ -9,6 +9,7 @@ import (
 
 	"github.com/av1ppp/hlserv"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -122,6 +123,8 @@ var deleteStreamSegment = http.HandlerFunc(func(w http.ResponseWriter, r *http.R
 
 func main() {
 	r := chi.NewRouter()
+
+	r.Use(middleware.Logger)
 
 	r.Get("/", homeHandler)
 	r.Get("/streams", getStreamsHandler)

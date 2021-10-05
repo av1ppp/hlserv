@@ -14,10 +14,6 @@ type urlParams struct {
 	streamID string
 }
 
-// func (params *urlParams) name() string {
-// 	return params.streamID + "/" + params.filename
-// }
-
 func parseUrlParams(u *url.URL) (*urlParams, error) {
 	splitPath := strings.Split(u.Path, "/")
 
