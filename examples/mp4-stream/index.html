@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.0.11/hls.min.js"></script>
+
+    <style>
+        video {
+            border: 4px solid lightblue;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center pt-5">
+        <div class="row">
+            <div class="col">
+                <video muted autoplay controls playisline height="300px"></video>
+            </div>
+        </div>
+
+        <div class="row mt-5 mx-auto" style="width: 700px">
+            <div class="col">
+                <h4>File</h4>
+                <select class="form-select mx-auto" style="width: 200px;">
+                    <option value="sample_3mb.mp4">sample_3mb.mp4</option>
+                    <option value="sample_10mb.mp4">sample_10mb.mp4</option>
+                </select>
+            </div>
+            <div class="col">
+                <h4>Quality (0-51)</h4>
+                <div class="input-group mb-3 mx-auto"  style="width: 200px;">
+                    <input id="crfInput" type="number" class="form-control" placeholder="crf" min="0" max="51" value="21">
+                </div>
+            </div>
+            <div class="col">
+                <h4>Scale</h4>
+                <div class="input-group mb-3 mx-auto"  style="width: 200px;">
+                    <input id="scaleInput" type="text" class="form-control" placeholder="crf">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <button type="button" style="width: 150px" class="btn btn-primary btn-lg mt-3">Play</button>
+            </div>
+        </div>
+
+        <style>
+            .list-group button {
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        </style>
+        <div class="row mt-5">
+            <div class="col">
+                <h4>Active streams</h4>
+                <ul class="list-group mx-auto" style="width: 400px">
+                    <!-- <div class="list-group-item">
+                        An item
+                        <button type="button" class="btn btn-danger btn-sm">stop</button>
+                    </div> -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const host = 'http://localhost:5555'
+        const video = document.querySelector('video')
+        const select = document.querySelector('select')
+        const crfInput = document.querySelector('#crfInput')
+        const scaleInput = document.querySelector('#scaleInput')
+        const playButton = document.querySelector('button')
+        const activeStreamsListGroup = document.querySelector('.list-group')
+
+        async function refreshActiveStreams() {
+            const resp = await fetch(host+'/streams')
+            const json = await resp.json()
+
+            activeStreamsListGroup.innerHTML = ''
+
+            if (!json)
+                return
+
+            for (const stream of json) {
+                const listGroupItem = document.createElement('div')
+                listGroupItem.className = 'list-group-item'
+                listGroupItem.innerText = stream.id
+
+                const btn = document.createElement('button')
+                btn.type = 'button'
+                btn.className = 'btn btn-danger btn-sm'
+                btn.innerText = 'stop'
+                btn.addEventListener('click', () => stopStream(stream.id).catch(err => console.log(err)))
+
+                listGroupItem.appendChild(btn)
+                activeStreamsListGroup.appendChild(listGroupItem)
+            }
+        }
+
+        async function stopStream(id) {
+            const url = host+'/streams/'+id
+            const resp = await fetch(url, { method: 'DELETE' })
+        }
+
+        playButton.addEventListener('click', () => {
+            const source = select.value
+            const crf = parseInt(crfInput.value)
+            const scale = scaleInput.value
+
+            startStream(source, crf, scale)
+                .then(streamId => {
+                    playStream(streamId)
+                })
+                .catch(err => console.log(err))
+        })
+
+        async function playStream(id) {
+            console.log('stream id:', id)
+
+            const src = host+'/streams/'+id+'/stream.m3u8'
+
+            // wait
+            while (true) {
+                const resp = await fetch(src)
+                if (resp.status !== 404) {
+                    break
+                }
+            }
+
+            const hls = new Hls()
+            hls.loadSource(src)
+            hls.attachMedia(video)
+            hls.on(Hls.Events.ERROR, (_, err) => {
+                console.log(err)
+            })
+        }
+
+        async function startStream(source, crf, scale) {
+            const url = host+'/streams'
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'applicatoin/json' },
+                body: JSON.stringify({ source, crf, scale })
+            })
+            const json = await resp.json()
+            return json.stream_id
+        }
+
+        setInterval(() => {
+            refreshActiveStreams().catch(err => console.log(err))
+        }, 500)
+    </script>
+</body>
+</html>

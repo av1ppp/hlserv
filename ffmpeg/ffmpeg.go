@@ -23,7 +23,7 @@ type report struct {
 type FFmpeg struct {
 	BinPath string
 	Report  report
-	workers map[string]*FFmpegWorker
+	workers []*FFmpegWorker
 
 	sync.RWMutex
 }
@@ -59,6 +59,6 @@ func New() *FFmpeg {
 			File:     reportFile,
 			LogLevel: reportLogLevel,
 		},
-		workers: make(map[string]*FFmpegWorker),
+		workers: []*FFmpegWorker{},
 	}
 }

@@ -13,9 +13,10 @@ import (
 )
 
 type FFmpegWorker struct {
+	Name string
+
 	cmd       *exec.Cmd
 	cmdBackup exec.Cmd
-	cmdString string
 
 	murderPlanned bool
 }
@@ -123,8 +124,8 @@ func (ff *FFmpeg) stoc(s string) *exec.Cmd {
 	return cmd
 }
 
-func (ff *FFmpeg) NewWorker(key string, files ...OptionIO) (*FFmpegWorker, error) {
-	if _, find := ff.Worker(key); find {
+func (ff *FFmpeg) NewWorker(name string, files ...OptionIO) (*FFmpegWorker, error) {
+	if _, find := ff.Worker(name); find {
 		return nil, ErrWorkerAlreadyExists
 	}
 
@@ -135,23 +136,36 @@ func (ff *FFmpeg) NewWorker(key string, files ...OptionIO) (*FFmpegWorker, error
 	// fmt.Println(s)
 	cmd := ff.stoc(s)
 
-	w := FFmpegWorker{cmd: cmd, cmdBackup: *cmd, cmdString: s, murderPlanned: false}
+	w := FFmpegWorker{
+		Name:      name,
+		cmd:       cmd,
+		cmdBackup: *cmd,
+	}
 
-	ff.workers[key] = &w
+	ff.workers = append(ff.workers, &w)
 
 	return &w, nil
 }
 
-func (ff *FFmpeg) Worker(key string) (*FFmpegWorker, bool) {
+func (ff *FFmpeg) Worker(name string) (*FFmpegWorker, bool) {
 	ff.RLock()
 	defer ff.RUnlock()
 
-	w, find := ff.workers[key]
-	return w, find
+	for _, w := range ff.workers {
+		if w.Name == name {
+			return w, true
+		}
+	}
+
+	return nil, false
 }
 
-func (ff *FFmpeg) RmWorker(key string) {
-	w, find := ff.Worker(key)
+func (ff *FFmpeg) Workers() []*FFmpegWorker {
+	return ff.workers
+}
+
+func (ff *FFmpeg) RmWorker(name string) {
+	w, find := ff.Worker(name)
 	if !find {
 		return
 	}
@@ -163,5 +177,9 @@ func (ff *FFmpeg) RmWorker(key string) {
 		w.Stop()
 	}
 
-	delete(ff.workers, key)
+	for i, w := range ff.workers {
+		if w.Name == name {
+			ff.workers = append(ff.workers[:i], ff.workers[i+1:]...)
+		}
+	}
 }

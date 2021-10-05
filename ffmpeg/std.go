@@ -31,6 +31,10 @@ func Worker(key string) (*FFmpegWorker, bool) {
 	return stdFFmpeg().Worker(key)
 }
 
+func Workers() []*FFmpegWorker {
+	return stdFFmpeg().Workers()
+}
+
 func RmWorker(key string) {
 	stdFFmpeg().RmWorker(key)
 }

@@ -29,9 +29,12 @@ func CreateStream(conf *StreamConfig) (string, error) {
 
 	var input, output ffmpeg.OptionIO
 
-	if conf.Format == "rtsp" {
+	switch conf.Format {
+	case "rtsp":
 		input, output = rtspToHLS(conf)
-	} else {
+	case "mp4":
+		input, output = mp4ToHLS(conf)
+	default:
 		return "", ErrUnknownFormat
 	}
 
@@ -59,4 +62,12 @@ func RemoveStream(id string) error {
 
 	ffmpeg.RmWorker(id)
 	return nil
+}
+
+func Streams() []string {
+	ids := []string{}
+	for _, w := range ffmpeg.Workers() {
+		ids = append(ids, w.Name)
+	}
+	return ids
 }

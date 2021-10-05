@@ -2,18 +2,17 @@ package hlserv
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/av1ppp/hlserv/ffmpeg"
 )
 
-func mp4ToHLS(streamID string, src string, offset time.Duration) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
+func mp4ToHLS(conf *StreamConfig) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
 	var (
 		input = ffmpeg.OptsInMp4{
-			File: src,
+			File: conf.Source,
 			General: &ffmpeg.OptsInGeneral{
 				LogLevel: []string{},
-				Start:    fmt.Sprintf("%f", offset.Seconds()),
+				// Start:    fmt.Sprintf("%f", offset.Seconds()),
 			},
 		}
 		output = ffmpeg.OptsOutHLS{
@@ -21,7 +20,7 @@ func mp4ToHLS(streamID string, src string, offset time.Duration) (ffmpeg.OptsInM
 			HLSListSize:    0, // unlimit
 			HLSSegmentType: "mpegts",
 			HLSFlags:       []string{"program_date_time"},
-			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, streamID),
+			File:           fmt.Sprintf("%s/%s/stream.m3u8", EndPoint, conf.id),
 			General: &ffmpeg.OptsOutGeneral{
 				Audio:          false,
 				VCodec:         "libx264",
@@ -33,6 +32,7 @@ func mp4ToHLS(streamID string, src string, offset time.Duration) (ffmpeg.OptsInM
 				Preset:         "ultrafast",
 				CRF:            25,
 
+				VFilter:  formatVFilter(conf.Scale),
 				Level:    "5.0",
 				VProfile: "main",
 				VBitrate: "5000k",
@@ -40,28 +40,6 @@ func mp4ToHLS(streamID string, src string, offset time.Duration) (ffmpeg.OptsInM
 			},
 		}
 	)
-
-	// switch quality {
-	// case QualityHigh:
-	// 	output.General.Level = "5.0"
-	// 	output.General.VProfile = "main"
-	// 	output.General.VBitrate = "5000k"
-	// 	output.General.Bufsize = "2500k"
-
-	// case QualityMedium:
-	// 	output.General.Level = "3.0"
-	// 	output.General.VProfile = "main"
-	// 	output.General.VBitrate = "1600k"
-	// 	output.General.Bufsize = "800k"
-	// 	output.General.VFilter = "scale=-2:480"
-
-	// case QualityLow:
-	// 	output.General.Level = "1.1"
-	// 	output.General.VProfile = "baseline"
-	// 	output.General.VBitrate = "1000k"
-	// 	output.General.Bufsize = "500k"
-	// 	output.General.VFilter = "scale=-2:240"
-	// }
 
 	return input, output
 }
