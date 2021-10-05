@@ -6,32 +6,36 @@ import (
 )
 
 type StreamConfig struct {
-	Format string
-	Input  string
+	id string
 
-	// Level   string
-	// Profile string
+	Source string
 
-	// VideoBitrate string
-	// VideoProfile string
-	// Bufsize      string
-	// Scale        string
+	Format       string
+	AudioEnabled bool
+	FPS          int
+	Preset       ffmpeg.Preset
+	Level        string
+	Profile      string
+	VideoBitrate string
+	Bufsize      string
+	Scale        string
+	CRF          int
 }
 
 // Добавляет и запускает стрим с заданными настройками.
 // Возвращает ID стрима.
 func CreateStream(conf *StreamConfig) (string, error) {
-	id := randstr.String(12)
+	conf.id = randstr.String(12)
 
 	var input, output ffmpeg.OptionIO
 
 	if conf.Format == "rtsp" {
-		input, output = rtspToHLS(id, conf.Input)
+		input, output = rtspToHLS(conf)
 	} else {
 		return "", ErrUnknownFormat
 	}
 
-	w, err := ffmpeg.NewWorker(id, input, output)
+	w, err := ffmpeg.NewWorker(conf.id, input, output)
 
 	if err != nil {
 		return "", err
@@ -41,7 +45,7 @@ func CreateStream(conf *StreamConfig) (string, error) {
 		return "", err
 	}
 
-	return id, nil
+	return conf.id, nil
 }
 
 func RemoveStream(id string) error {

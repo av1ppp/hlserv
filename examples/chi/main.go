@@ -23,7 +23,8 @@ func main() {
 	// start streaming
 	conf := hlserv.StreamConfig{
 		Format: "rtsp",
-		Input:  "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
+		Source: "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
+		FPS:    10,
 	}
 	if streamID, err = hlserv.CreateStream(&conf); err != nil {
 		panic(err)

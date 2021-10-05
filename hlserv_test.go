@@ -18,16 +18,12 @@ func init() {
 
 func TestHLSServer(t *testing.T) {
 	go http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			hlserv.O.ServeHTTP(w, r)
-		} else {
-			hlserv.I.ServeHTTP(w, r)
-		}
+		hlserv.Handler.ServeHTTP(w, r)
 	}))
 
 	streamID, err := hlserv.CreateStream(&hlserv.StreamConfig{
 		Format: "rtsp",
-		Input:  "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
+		Source: "rtsp://admin:12345678@192.168.1.20:554/ch01/0",
 	})
 	if err != nil {
 		t.Fatalf("error adding stream: %s", err)
