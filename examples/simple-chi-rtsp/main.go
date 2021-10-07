@@ -18,7 +18,7 @@ func main() {
 	var stream *hlserv.Stream
 	var err error
 
-	hlserv.EndPoint = "http://" + addr + "/streams"
+	hlserv.SetEndPoint("http://" + addr + "/streams")
 
 	// start http server
 	r := chi.NewRouter()

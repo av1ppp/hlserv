@@ -10,14 +10,8 @@ import (
 	"github.com/av1ppp/hlserv"
 )
 
-var addr = "127.0.0.1:5555"
-
-func init() {
-	hlserv.EndPoint = "http://" + addr
-}
-
 func TestHLSServer(t *testing.T) {
-	go http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	go http.ListenAndServe(hlserv.EndPoint(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hlserv.Handler.ServeHTTP(w, r)
 	}))
 
@@ -32,7 +26,7 @@ func TestHLSServer(t *testing.T) {
 
 	time.Sleep(time.Second * 5)
 
-	resp, err := http.Get("http://" + addr + "/stream/" + stream.ID + "/stream.m3u8")
+	resp, err := http.Get("http://" + hlserv.EndPoint() + "/stream/" + stream.ID + "/stream.m3u8")
 	if err != nil {
 		t.Fatalf("error request: %s", err)
 	}

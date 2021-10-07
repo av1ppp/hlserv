@@ -6,13 +6,13 @@ import (
 	"github.com/av1ppp/hlserv/ffmpeg"
 )
 
-func mp4ToHLS(stream *Stream) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
+func presetMP4(stream *Stream) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
 	var (
 		input = ffmpeg.OptsInMp4{
 			File: stream.Config.Source,
 			General: &ffmpeg.OptsInGeneral{
-				LogLevel: []string{},
-				// Start:    fmt.Sprintf("%f", offset.Seconds()),
+				Speed: stream.Config.Speed,
+				Start: fmt.Sprintf("%f", stream.Config.OffsetSec),
 			},
 		}
 		output = ffmpeg.OptsOutHLS{
@@ -29,8 +29,7 @@ func mp4ToHLS(stream *Stream) (ffmpeg.OptsInMp4, ffmpeg.OptsOutHLS) {
 				KeyintMin:      stream.Config.FPS,
 				ForceKeyFrames: "expr:gte(t,n_forced*1)",
 				Tune:           "zerolatency",
-				Preset:         ffmpeg.FormatPreset(stream.Config.Preset),
-				CRF:            stream.Config.CRF,
+				Preset:         stream.Config.Preset,
 
 				VFilter:  formatVFilter(stream.Config.Scale),
 				Level:    stream.Config.Level,
@@ -52,8 +51,7 @@ func formatVFilter(scale string) string {
 	return "scale=" + scale
 }
 
-func rtspToHLS(stream *Stream) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHLS) {
-	// Creating ffmpeg worker
+func presetRTSP(stream *Stream) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHLS) {
 	var (
 		input = ffmpeg.OptsInRTSP{
 			RTSPTransport:     "udp",
@@ -75,8 +73,7 @@ func rtspToHLS(stream *Stream) (ffmpeg.OptsInRTSP, ffmpeg.OptsOutHLS) {
 				KeyintMin:      stream.Config.FPS,
 				ForceKeyFrames: "expr:gte(t,n_forced*1)",
 				Tune:           "zerolatency",
-				Preset:         ffmpeg.FormatPreset(stream.Config.Preset),
-				CRF:            stream.Config.CRF,
+				Preset:         stream.Config.Preset,
 
 				VFilter:  formatVFilter(stream.Config.Scale),
 				Level:    stream.Config.Level,

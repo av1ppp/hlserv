@@ -22,9 +22,9 @@ func (stream *Stream) buildWorker() error {
 
 	switch stream.Config.Format {
 	case "rtsp":
-		input, output = rtspToHLS(stream)
+		input, output = presetRTSP(stream)
 	case "mp4":
-		input, output = mp4ToHLS(stream)
+		input, output = presetMP4(stream)
 	default:
 		return ErrUnknownFormat
 	}
@@ -39,6 +39,7 @@ func (stream *Stream) buildWorker() error {
 type StreamConfig struct {
 	Source string
 
+	OffsetSec    float32
 	Format       string
 	AudioEnabled bool
 	FPS          int
@@ -49,6 +50,7 @@ type StreamConfig struct {
 	Bufsize      string
 	Scale        string
 	CRF          int
+	Speed        int
 }
 
 // Добавляет и запускает стрим с заданными настройками.

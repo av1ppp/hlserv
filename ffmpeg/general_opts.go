@@ -1,6 +1,7 @@
 package ffmpeg
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,7 @@ type (
 		Framerate int    // option -framerate
 		VideoSize string // option -video_size
 		Start     string // option -ss
+		Speed     int    // option -itsscale
 	}
 
 	// OptionsOGeneral - general output 'file' options.
@@ -37,7 +39,7 @@ type (
 		Scaling        string   // option -s
 		SwsFlags       []string // option -sws_flags
 		Flags          []string // option -flags
-		Preset         string   // option -preset
+		Preset         Preset   // option -preset
 		Tune           string   // option -tune
 		FPS            int      // option -r
 		Gop            int      // option -g
@@ -76,6 +78,10 @@ func (o OptsInGeneral) String() string {
 
 	if o.Start != "" {
 		str += "-ss " + o.Start + " "
+	}
+
+	if o.Speed != 0 {
+		str += fmt.Sprintf("-itsscale %f ", 1/(float32)(o.Speed))
 	}
 
 	if o.Analyzeduration > 0 {
@@ -151,7 +157,7 @@ func (o OptsOutGeneral) String() string {
 	}
 
 	if o.Preset != "" {
-		str += "-preset " + o.Preset + " "
+		str += string("-preset " + o.Preset + " ")
 	}
 
 	if o.Tune != "" {

@@ -50,8 +50,8 @@ var getStreamsHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Req
 var startStreamHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Source string `json:"source"`
-		CRF    int    `json:"crf"` // quality
 		Scale  string `json:"scale"`
+		Speed  int    `json:"speed"`
 	}
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -68,8 +68,9 @@ var startStreamHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 	// если уже есть такой стрим - возвращаем его
 	for _, stream := range hlserv.Streams() {
 		if stream.Config.Source == req.Source &&
-			stream.Config.CRF == req.CRF &&
-			stream.Config.Scale == req.Scale {
+			stream.Config.Scale == req.Scale &&
+			stream.Config.Speed == req.Speed {
+
 			resp.StreamID = stream.ID
 		}
 	}
@@ -80,8 +81,8 @@ var startStreamHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Re
 			Format: "mp4",
 			Source: req.Source,
 			FPS:    10,
-			CRF:    req.CRF,
 			Scale:  req.Scale,
+			Speed:  req.Speed,
 		})
 		if err != nil {
 			panic(err)

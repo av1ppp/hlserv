@@ -34,15 +34,15 @@
                 </select>
             </div>
             <div class="col">
-                <h4>Quality (0-51)</h4>
+                <h4>Speed</h4>
                 <div class="input-group mb-3 mx-auto"  style="width: 200px;">
-                    <input id="crfInput" type="number" class="form-control" placeholder="crf" min="0" max="51" value="21">
+                    <input id="speedInput" type="number" class="form-control" min="0" max="32" value="1">
                 </div>
             </div>
             <div class="col">
                 <h4>Scale</h4>
                 <div class="input-group mb-3 mx-auto"  style="width: 200px;">
-                    <input id="scaleInput" type="text" class="form-control" placeholder="crf">
+                    <input id="scaleInput" type="text" class="form-control">
                 </div>
             </div>
         </div>
@@ -78,7 +78,7 @@
         const host = 'http://localhost:5555'
         const video = document.querySelector('video')
         const select = document.querySelector('select')
-        const crfInput = document.querySelector('#crfInput')
+        const speedInput = document.querySelector('#speedInput')
         const scaleInput = document.querySelector('#scaleInput')
         const playButton = document.querySelector('button')
         const activeStreamsListGroup = document.querySelector('.list-group')
@@ -115,10 +115,10 @@
 
         playButton.addEventListener('click', () => {
             const source = select.value
-            const crf = parseInt(crfInput.value)
+            const speed = parseInt(speedInput.value)
             const scale = scaleInput.value
 
-            startStream(source, crf, scale)
+            startStream(source, speed, scale)
                 .then(streamId => {
                     playStream(streamId)
                 })
@@ -146,12 +146,12 @@
             })
         }
 
-        async function startStream(source, crf, scale) {
+        async function startStream(source, speed, scale) {
             const url = host+'/streams'
             const resp = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'applicatoin/json' },
-                body: JSON.stringify({ source, crf, scale })
+                body: JSON.stringify({ source, speed, scale })
             })
             const json = await resp.json()
             return json.stream_id
